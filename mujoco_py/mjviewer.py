@@ -74,12 +74,12 @@ class MjViewer(object):
 
     def autoscale(self):
         glfw.make_context_current(self.window)
-        self.cam.lookat[0] = self.model.stat.center[0]
+        """self.cam.lookat[0] = self.model.stat.center[0]
         self.cam.lookat[1] = self.model.stat.center[1]
         self.cam.lookat[2] = self.model.stat.center[2]
         self.cam.distance = 0.5 * self.model.stat.extent
         self.cam.camid = -1
-        self.cam.trackbodyid = 1
+        self.cam.trackbodyid = 1"""
         width, height = self.get_dimensions()
         mjlib.mjv_updateCameraPose(byref(self.cam), width*1.0/height)
 
@@ -95,12 +95,10 @@ class MjViewer(object):
         self.gui_lock.acquire()
         rect = self.get_rect()
         arr = (ctypes.c_double*3)(0, 0, 0)
-
         mjlib.mjv_makeGeoms(self.model.ptr, self.data.ptr, byref(self.objects), byref(self.vopt), mjCAT_ALL, 0, None, None, ctypes.cast(arr, ctypes.POINTER(ctypes.c_double)))
         mjlib.mjv_makeLights(self.model.ptr, self.data.ptr, byref(self.objects))
 
         mjlib.mjv_setCamera(self.model.ptr, self.data.ptr, byref(self.cam))
-
         mjlib.mjv_updateCameraPose(byref(self.cam), rect.width*1.0/rect.height)
 
         mjlib.mjr_render(0, rect, byref(self.objects), byref(self.ropt), byref(self.cam.pose), byref(self.con))
@@ -128,6 +126,14 @@ class MjViewer(object):
         gl.glReadBuffer(gl.GL_BACK)
         data = gl.glReadPixels(0, 0, width, height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE)
         return (data, width, height)
+
+    def get_depth_image(self):
+        glfw.make_context_current(self.window)
+        width, height = self.get_dimensions()
+        gl.glReadBuffer(gl.GL_BACK)
+        data = gl.glReadPixels(0, 0, width, height, gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT)
+        return (data, width, height)
+
 
     def _init_framebuffer_object(self):
         """
